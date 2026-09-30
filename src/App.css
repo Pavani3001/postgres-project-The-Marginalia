@@ -1,0 +1,59 @@
+.app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.site-header { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding: 26px 6vw; }
+.brand { align-items: center; color: var(--ink); display: flex; font-size: 15px; font-weight: 700; gap: 11px; letter-spacing: .04em; text-decoration: none; text-transform: uppercase; }
+.brand-mark { align-items: center; background: var(--ink); color: var(--paper); display: inline-flex; font-family: Georgia, serif; font-size: 20px; height: 34px; justify-content: center; width: 34px; }
+.user-menu { align-items: center; display: flex; gap: 12px; }
+.avatar { align-items: center; background: var(--coral); border-radius: 50%; color: var(--paper); display: flex; font-size: 11px; font-weight: 700; height: 34px; justify-content: center; width: 34px; }
+.user-details { display: flex; flex-direction: column; gap: 1px; }
+.user-details strong { color: var(--ink); font-size: 13px; }
+.user-details span { color: var(--muted); font-size: 11px; }
+.sign-out, .mode-toggle { background: transparent; border: 0; color: var(--coral); cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; padding: 8px 0; }
+.sign-out { margin-left: 15px; }
+main { flex: 1; }
+.auth-layout, .welcome-view { display: grid; margin: 0 auto; max-width: 1120px; padding: 10vh 6vw 8vh; }
+.auth-layout { align-items: center; gap: 10vw; grid-template-columns: 1.2fr .8fr; }
+.intro-panel { max-width: 560px; }
+.eyebrow { color: var(--coral); font-size: 11px; font-weight: 700; letter-spacing: .16em; margin: 0 0 24px; text-transform: uppercase; }
+h1 { color: var(--ink); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(52px, 7vw, 90px); font-weight: 400; letter-spacing: -.055em; line-height: .92; margin: 0; }
+h1 em { color: var(--coral); font-style: italic; }
+.intro { color: var(--muted); font-size: 16px; line-height: 1.7; margin-top: 31px; max-width: 410px; }
+.issue-note { border-top: 1px solid var(--line); color: var(--muted); display: flex; font-size: 10px; gap: 24px; letter-spacing: .12em; margin-top: 70px; padding-top: 14px; text-transform: uppercase; }
+.auth-panel { background: var(--panel); border: 1px solid var(--line); padding: 38px; }
+.panel-heading h2 { color: var(--ink); font-family: Georgia, serif; font-size: 30px; font-weight: 400; margin: 0 0 30px; }
+form { display: flex; flex-direction: column; }
+label { color: var(--ink); font-size: 12px; font-weight: 700; margin: 0 0 8px; }
+input { background: var(--paper); border: 1px solid var(--line); border-radius: 0; box-sizing: border-box; color: var(--ink); font: inherit; font-size: 14px; margin-bottom: 21px; outline: none; padding: 13px 14px; width: 100%; }
+input:focus { border-color: var(--coral); }
+.submit-button { align-items: center; background: var(--ink); border: 0; color: var(--paper); cursor: pointer; display: flex; font: inherit; font-size: 13px; font-weight: 700; justify-content: space-between; margin-top: 6px; padding: 15px 17px; }
+.submit-button:hover { background: var(--coral); }
+.submit-button:disabled { cursor: wait; opacity: .65; }
+.submit-button span { font-size: 19px; }
+.mode-toggle { display: block; margin: 21px auto 0; }
+.form-message { font-size: 12px; line-height: 1.5; margin: -7px 0 18px; }
+.error { color: #b43d2e; }
+.success { color: #437552; }
+.config-note { border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.6; margin: 22px 0 0; padding-top: 17px; }
+.welcome-view { display: block; max-width: 900px; padding-top: 15vh; }
+.welcome-view .intro { max-width: 500px; }
+.reminder-permission { background: transparent; border: 0; color: var(--coral); cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; margin-top: 20px; padding: 0; }
+.note-editor { background: var(--ink); color: var(--paper); margin-top: 65px; max-width: 680px; padding: 30px; }
+.editor-heading { align-items: flex-start; display: flex; justify-content: space-between; margin-bottom: 25px; }
+.editor-heading > span { color: #b9b2a8; font-size: 11px; }
+.card-kicker { color: var(--coral); font-size: 10px; font-weight: 700; letter-spacing: .14em; margin: 0 0 9px; text-transform: uppercase; }
+.note-editor h2 { color: var(--paper); font-family: Georgia, serif; font-size: 26px; font-weight: 400; margin: 0; }
+.note-editor input, .note-editor textarea { background: #2d2c27; border-color: #4b4840; color: var(--paper); margin-bottom: 14px; resize: vertical; }
+.note-editor input::placeholder, .note-editor textarea::placeholder { color: #969087; }
+.reminder-label { color: #b9b2a8; margin-top: 3px; }
+.note-editor .submit-button { background: var(--coral); margin-top: 3px; }
+.note-editor .submit-button:hover { background: #e36a58; }
+.note-error { margin: 18px 0 0; max-width: 680px; }
+.notes-list { margin-top: 65px; max-width: 680px; }
+.note-item { align-items: flex-start; border-top: 1px solid var(--line); display: flex; gap: 20px; justify-content: space-between; padding: 22px 0; }
+.note-item h2 { color: var(--ink); font-family: Georgia, serif; font-size: 24px; font-weight: 400; margin: 0 0 8px; }
+.note-item p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0; white-space: pre-wrap; }
+.note-item .reminder-time { color: var(--coral); font-size: 12px; margin-top: 10px; white-space: normal; }
+.note-meta { align-items: flex-end; display: flex; flex: 0 0 auto; flex-direction: column; gap: 10px; }
+.note-item time { color: var(--muted); font-size: 11px; }
+.delete-note { background: transparent; border: 0; color: var(--coral); cursor: pointer; font: inherit; font-size: 11px; padding: 0; }
+footer { border-top: 1px solid var(--line); color: var(--muted); display: flex; font-size: 10px; justify-content: space-between; letter-spacing: .12em; margin: 0 6vw; padding: 20px 0; text-transform: uppercase; }
+@media (max-width: 760px) { .site-header { padding: 18px 5vw; } .user-details { display: none; } .sign-out { margin-left: 5px; } .auth-layout { display: block; padding-top: 13vh; } .auth-panel { margin-top: 55px; padding: 26px; } .issue-note { margin-top: 45px; } .welcome-view { padding-top: 12vh; } .note-editor { margin-top: 45px; padding: 22px; } .editor-heading { display: block; } .editor-heading > span { display: block; margin-top: 14px; } .note-item { display: block; } .note-meta { align-items: flex-start; margin-top: 12px; } footer { margin: 0 5vw; } }
