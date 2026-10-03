@@ -1,232 +1,378 @@
 # The Marginalia
 
-The Marginalia is a small, private blogging app for capturing thoughts and
-setting reminders. It is built with React, TypeScript, Vite, and Supabase.
-Authenticated users can create, view, and delete their own notes, optionally
-set a reminder, and receive browser notifications while the app is open.
+> A quiet, private space for capturing thoughts and remembering what matters.
 
-## Links
+The Marginalia is a personal notes application built with React, TypeScript,
+Vite, and Supabase. Users can create an account, write private notes, attach
+optional reminders, and manage their notes from a simple reading-room-style
+interface.
 
-- **Live application:** [https://postgres-plum.vercel.app/](https://postgres-plum.vercel.app/)
-- **Demo video:** _Add the demo video link here._
+---
 
-## Features
+## 🚀 Live Demo
 
-- Email/password sign up and sign in with Supabase Auth
-- User details and sign-out control in the header
-- Private notes stored in Supabase Postgres
-- Row-level security so users can access only their own notes
-- Optional reminder date and time on every note
-- Browser notifications for due reminders while the app is open
-- Optional background email reminders through a Supabase Edge Function and Resend
+https://postgres-plum.vercel.app/
 
-## Architecture
+---
 
-```mermaid
-flowchart TD
-    User[User in browser]
-    Vercel[Vercel static hosting<br/>React + Vite]
-    SupabaseAuth[Supabase Auth]
-    SupabaseDB[(Supabase Postgres<br/>notes table + RLS)]
-    BrowserReminders[Browser Notification API<br/>while app is open]
-    Scheduler[Supabase Cron / external scheduler]
-    EdgeFunction[Supabase Edge Function<br/>send-reminders]
-    Resend[Resend email API]
+## 🎥 Demo Video
 
-    User -->|HTTPS| Vercel
-    Vercel -->|Auth and data requests| SupabaseAuth
-    Vercel -->|Read, create, delete notes| SupabaseDB
-    SupabaseAuth -->|Authenticated session| Vercel
-    Vercel -->|Due reminder polling| BrowserReminders
-    Scheduler -->|POST every minute| EdgeFunction
-    EdgeFunction -->|Read due notes and mark sent| SupabaseDB
-    EdgeFunction -->|Send reminder email| Resend
+_Add the demo video link here._
+
+---
+
+## 📌 Problem
+
+Small ideas, personal reflections, and important follow-ups are easy to lose
+among chat messages, browser tabs, and scattered paper notes.
+
+Many note-taking tools are also overloaded with features when someone simply
+wants a private place to write something down and remember it later.
+
+The Marginalia addresses this by providing a focused, private space where users
+can:
+
+- Create an account and sign in securely
+- Write and save personal notes
+- Add an optional date and time reminder
+- Receive a browser notification when a reminder is due
+- Delete notes they no longer need
+
+---
+
+## 💡 Solution
+
+The Marginalia combines:
+
+- **React and TypeScript** for the interactive web interface
+- **Vite** for fast local development and production builds
+- **Supabase Auth** for email/password authentication
+- **Supabase Postgres** for persistent note storage
+- **Postgres Row-Level Security** to isolate each user's notes
+- **Browser Notifications** for reminders while the app is open
+- **Supabase Edge Functions and Resend** for optional background email reminders
+- **Vercel** for hosting and deployment
+
+The browser communicates with Supabase using the public anon key. Database
+policies ensure that a signed-in user can read, create, and delete only notes
+belonging to that user.
+
+---
+
+## ✨ Features
+
+### 🔐 Authentication
+
+- Email/password sign up
+- Email/password sign in
+- Email confirmation support through Supabase Auth
+- User identity and sign-out control in the header
+
+### 📝 Personal Notes
+
+Users can:
+
+- Add a title and body to a note
+- View their saved notes in reverse chronological order
+- Delete their own notes
+- Keep notes private through database-level security policies
+
+### ⏰ Browser Reminders
+
+- Add an optional reminder date and time to a note
+- Request browser notification permission when reminders are used
+- Check due reminders every 30 seconds while the application is open
+- Avoid showing the same reminder more than once in the browser
+
+### 📧 Optional Email Reminders
+
+The optional `send-reminders` Supabase Edge Function can:
+
+1. Find notes whose reminder time has passed
+2. Look up the note owner's email address
+3. Send a reminder through Resend
+4. Mark the reminder as sent
+
+This requires a scheduler to call the function periodically and is separate
+from browser notifications.
+
+---
+
+## 🏗️ Architecture
+
+```text
+                         ┌──────────────────────┐
+                         │        USER          │
+                         │  Sign in and write   │
+                         │       personal notes │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │      Vercel          │
+                         │  React + Vite client │
+                         └──────────┬───────────┘
+                                    │
+                    ┌───────────────┴───────────────┐
+                    │                               │
+                    ▼                               ▼
+          ┌──────────────────┐            ┌────────────────────┐
+          │  Supabase Auth   │            │  Supabase Postgres │
+          │ Email/password   │            │ notes + RLS        │
+          └────────┬─────────┘            └─────────┬──────────┘
+                   │                               │
+                   │                               │
+                   ▼                               ▼
+          ┌──────────────────┐            ┌────────────────────┐
+          │ Authenticated    │            │ Browser reminders  │
+          │ user session      │            │ Notification API   │
+          └──────────────────┘            └────────────────────┘
+                                                   │
+                                                   │ optional
+                                                   ▼
+                                      ┌────────────────────────┐
+                                      │ Supabase Edge Function  │
+                                      │    send-reminders       │
+                                      └───────────┬────────────┘
+                                                  │
+                                                  ▼
+                                      ┌────────────────────────┐
+                                      │       Resend API        │
+                                      │  Background email       │
+                                      └────────────────────────┘
 ```
 
-### Request and data flow
+### Application flow
 
-1. Vercel serves the compiled Vite application.
-2. The browser creates a Supabase client using the public `VITE_*` variables.
-3. Supabase Auth manages the session and returns the authenticated user.
-4. The app reads and writes the `notes` table. Postgres row-level security
-   restricts each operation to the signed-in user's `user_id`.
-5. Browser reminders are checked locally every 30 seconds after notification
-   permission is granted.
-6. Optional email reminders are handled separately by the
-   `send-reminders` Edge Function. A scheduler calls it, the function sends
-   due reminders through Resend, and then records `reminder_sent_at`.
+1. Vercel serves the compiled React/Vite application.
+2. The browser creates a Supabase client using the `VITE_*` environment
+   variables.
+3. Supabase Auth manages the user's session.
+4. The client reads, inserts, and deletes notes through Supabase.
+5. Postgres RLS checks `auth.uid() = user_id` for every user-facing operation.
+6. The browser checks due reminders locally every 30 seconds.
+7. An optional scheduler calls the Edge Function for background email reminders.
 
-## Prerequisites
+---
+
+## 🗄️ Supabase PostgreSQL Database
+
+Supabase provides the hosted PostgreSQL database and dashboard used by the
+project. The database definition is in
+[`supabase/schema.sql`](./supabase/schema.sql).
+
+### `notes`
+
+The `notes` table stores each user's personal notes and reminder state.
+
+Important fields include:
+
+- `id` - UUID primary key
+- `user_id` - Supabase Auth user ID
+- `title` - Note title
+- `body` - Note contents
+- `created_at` - Creation timestamp
+- `reminder_at` - Optional reminder timestamp
+- `reminder_sent_at` - Timestamp used by the email reminder function
+
+### Database security
+
+Row-level security is enabled on `notes` with policies that allow users to:
+
+- Read only their own notes
+- Insert notes only with their own `user_id`
+- Delete only their own notes
+
+The reminder index makes it efficient for the Edge Function to find notes that
+are due and have not yet been sent.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 19, TypeScript |
+| Build tool | Vite |
+| Authentication | Supabase Auth |
+| Database | PostgreSQL through Supabase |
+| Database security | PostgreSQL Row-Level Security |
+| Browser reminders | Web Notifications API |
+| Email reminders | Supabase Edge Functions and Resend |
+| Hosting | Vercel |
+
+---
+
+## ⚙️ Local Setup
+
+### Prerequisites
 
 - Node.js 20 or newer
 - npm
 - A Supabase project
-- Optional: a Resend account and a scheduler for background email reminders
 
-## Local setup
+### 1. Clone the repository
 
-1. Clone the repository and enter the project directory:
+```bash
+git clone https://github.com/Pavani3001/postgres-project-The-Marginalia.git
+cd postgres-project-The-Marginalia
+```
 
-   ```bash
-   git clone https://github.com/Pavani3001/postgres-project-The-Marginalia.git
-   cd postgres-project-The-Marginalia
-   ```
+### 2. Configure Supabase
 
-2. Create a Supabase project.
+1. Create a Supabase project.
+2. Open **Authentication > Providers** and enable **Email**.
+3. Open **Project Settings > API** and copy the project URL and anon key.
+4. Open the Supabase **SQL Editor**, paste the complete contents of
+   [`supabase/schema.sql`](./supabase/schema.sql), and run it once.
 
-3. In the Supabase dashboard, open **Authentication > Providers** and enable
-   **Email**. Keep email confirmation enabled if you want users to verify their
-   email address before signing in.
+### 3. Configure environment variables
 
-4. Copy the environment template:
+Copy the example file:
 
-   ```bash
-   copy .env.example .env.local
-   ```
+```bash
+copy .env.example .env.local
+```
 
-   On macOS/Linux, use `cp .env.example .env.local`.
+On macOS/Linux:
 
-5. Open `.env.local` and set the Supabase URL and anon key:
+```bash
+cp .env.example .env.local
+```
 
-   ```text
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   ```
+Set the values in `.env.local`:
 
-   Find both values in the Supabase dashboard under **Project Settings >
-   API**. Never put a Supabase service-role key in `.env.local` or expose it in
-   the browser.
+```text
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
 
-6. In the Supabase dashboard, open **SQL Editor**, paste the complete contents
-   of [`supabase/schema.sql`](./supabase/schema.sql), and run it once. This
-   creates the notes table, reminder fields, index, and row-level security
-   policies.
+Only use the public Supabase anon key in this file. Never expose the
+Supabase service-role key in the browser or commit it to Git.
 
-7. Install dependencies and start the development server:
+### 4. Install and run
 
-   ```bash
-   npm install
-   npm run dev
-   ```
+```bash
+npm install
+npm run dev
+```
 
-8. Open the local URL printed by Vite, usually
-   `http://localhost:5173`.
+Open the local URL printed by Vite, usually `http://localhost:5173`.
 
-When email confirmation is enabled, a new user must confirm the email address
-from their inbox before signing in.
+If email confirmation is enabled, confirm the email address before signing
+in.
 
-## Vercel deployment
+---
+
+## 🌐 Vercel Deployment
 
 1. Import the repository into [Vercel](https://vercel.com/).
-2. Select **Vite** as the framework if Vercel does not detect it
-   automatically.
-3. Add these variables in **Project Settings > Environment Variables** for the
-   **Production**, **Preview**, and **Development** environments as needed:
+2. Select **Vite** as the framework if it is not detected automatically.
+3. Add the following variables under **Project Settings > Environment
+   Variables**:
 
    ```text
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
 
-4. Use `npm run build` as the build command and `dist` as the output
-   directory, if Vercel does not fill them in automatically.
-5. Deploy or redeploy the project. Vite embeds `VITE_*` variables at build
-   time, so changing them requires a new deployment.
-6. In Supabase, add the deployed URL to **Authentication > URL Configuration**
-   as the site URL and an allowed redirect URL if required by your auth setup.
+4. Use `npm run build` as the build command and `dist` as the output directory
+   if Vercel does not detect them automatically.
+5. Deploy the project.
+6. In Supabase, add the Vercel URL under **Authentication > URL
+   Configuration** as the site URL and allowed redirect URL when required.
 
-The current deployed application is
-[https://postgres-plum.vercel.app/](https://postgres-plum.vercel.app/).
+Vite embeds `VITE_*` values during the build, so changing environment variables
+requires a new deployment.
 
-## Optional background email reminders
+**Current deployment:** https://postgres-plum.vercel.app/
 
-Browser notifications work without this section, but they require the app to
-remain open. The Edge Function provides reminders by email when the app is
-closed.
+---
 
-1. Install or run the Supabase CLI through `npx`, then authenticate:
+## 📧 Optional Background Email Reminders
 
-   ```bash
-   npx supabase login
-   npx supabase link --project-ref YOUR_PROJECT_REF
-   ```
+Browser reminders require the app to remain open. To enable email reminders
+when the app is closed:
 
-2. Deploy the function:
+```bash
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase functions deploy send-reminders
+```
 
-   ```bash
-   npx supabase functions deploy send-reminders
-   ```
+Configure the function secrets:
 
-3. Configure function-only secrets. These values must not be exposed as
-   `VITE_*` variables:
+```bash
+npx supabase secrets set \
+  RESEND_API_KEY=your-resend-key \
+  REMINDER_FROM_EMAIL=reminders@your-domain.com \
+  CRON_SECRET=choose-a-secret
+```
 
-   ```bash
-   npx supabase secrets set \
-     RESEND_API_KEY=your-resend-key \
-     REMINDER_FROM_EMAIL=reminders@your-domain.com \
-     CRON_SECRET=choose-a-secret
-   ```
+Configure Supabase Cron, GitHub Actions, or another scheduler to send a `POST`
+request every minute to:
 
-4. Configure Supabase Cron, GitHub Actions, or another scheduler to send a
-   `POST` request every minute to:
+```text
+https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-reminders
+```
 
-   ```text
-   https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-reminders
-   ```
+Include this header:
 
-   Include the same secret in the request:
+```text
+x-cron-secret: choose-a-secret
+```
 
-   ```text
-   x-cron-secret: choose-a-secret
-   ```
+The sender address must be authorized in Resend.
 
-5. Verify that the sender address is authorized in Resend. The function finds
-   due notes that have not been sent, sends each email, and updates
-   `reminder_sent_at`.
+---
 
-## Available commands
+## 📁 Project Structure
 
-| Command | Purpose |
+```text
+.
+├── src/
+│   ├── lib/supabase.ts       # Supabase client configuration
+│   ├── App.tsx               # Authentication, notes, and reminders
+│   ├── App.css               # Application styles
+│   └── main.tsx              # React entry point
+├── supabase/
+│   ├── schema.sql            # Notes table and RLS policies
+│   └── functions/
+│       └── send-reminders/   # Optional email reminder function
+├── public/                   # Static assets
+├── .env.example              # Client environment variable template
+└── package.json              # Scripts and dependencies
+```
+
+---
+
+## ▶️ Available Commands
+
+| Command | Description |
 | --- | --- |
 | `npm run dev` | Start the local Vite development server |
-| `npm run build` | Run TypeScript checks and create a production build |
+| `npm run build` | Run TypeScript checks and build for production |
 | `npm run lint` | Check source files with Oxlint |
 | `npm run preview` | Preview the production build locally |
 
-Run the checks before opening a pull request:
+Run the checks before deployment:
 
 ```bash
 npm run lint
 npm run build
 ```
 
-## Project structure
+---
 
-```text
-.
-├── src/
-│   ├── lib/supabase.ts       # Supabase client configuration
-│   ├── App.tsx               # Auth, notes, and reminder UI logic
-│   ├── App.css               # App-specific styles
-│   └── main.tsx              # React entry point
-├── supabase/
-│   ├── schema.sql            # Database schema and RLS policies
-│   └── functions/
-│       └── send-reminders/   # Optional email reminder function
-├── public/                   # Static assets
-├── .env.example              # Required client-side environment variables
-└── package.json              # Scripts and dependencies
-```
+## 🐛 Troubleshooting
 
-## Troubleshooting
-
-- **Authentication is disabled:** Confirm both `VITE_SUPABASE_URL` and
-  `VITE_SUPABASE_ANON_KEY` are present in `.env.local`, then restart Vite.
-- **Notes cannot be loaded or saved:** Run the complete
-  [`supabase/schema.sql`](./supabase/schema.sql) script in the Supabase SQL
-  Editor and confirm the app is using the same project URL.
-- **No browser reminder appears:** Allow notifications for the site and keep
-  the application tab open. Browser reminders are intentionally client-side.
-- **Email reminders are not sent:** Check the Edge Function logs, confirm all
-  function secrets are set, verify the Resend sender domain, and confirm the
-  scheduler sends `POST` with the correct `x-cron-secret` header.
+- **Authentication is disabled:** Check both `VITE_SUPABASE_URL` and
+  `VITE_SUPABASE_ANON_KEY` in `.env.local`, then restart the dev server.
+- **Notes cannot be loaded or saved:** Run the full
+  [`supabase/schema.sql`](./supabase/schema.sql) script and confirm the app
+  points to the same Supabase project.
+- **Browser reminders do not appear:** Allow notifications for the deployed
+  site and keep the application tab open.
+- **Email reminders do not arrive:** Check Edge Function logs, function
+  secrets, the Resend sender domain, and the scheduler's `POST` request and
+  `x-cron-secret` header.
