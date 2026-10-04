@@ -16,7 +16,7 @@ https://postgres-plum.vercel.app/
 
 ## 🎥 Demo Video
 
-_Add the demo video link here._
+https://youtu.be/mZMH92CJXbs?si=pRusw6pBDA2HrudD
 
 ---
 
