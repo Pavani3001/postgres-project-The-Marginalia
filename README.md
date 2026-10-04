@@ -223,8 +223,28 @@ cd postgres-project-The-Marginalia
 1. Create a Supabase project.
 2. Open **Authentication > Providers** and enable **Email**.
 3. Open **Project Settings > API** and copy the project URL and anon key.
-4. Open the Supabase **SQL Editor**, paste the complete contents of
-   [`supabase/schema.sql`](./supabase/schema.sql), and run it once.
+4. Open the Supabase **SQL Editor**, create a new query, paste the complete
+   contents of [`supabase/schema.sql`](./supabase/schema.sql), and click
+   **Run**.
+5. Open **Table Editor** and refresh the page. You should now see the
+   `public.notes` table.
+
+The table is not created automatically when you clone or deploy this
+repository. The SQL script must be executed in the same Supabase project used
+by `VITE_SUPABASE_URL`.
+
+To verify that the table was created, run this query in the Supabase SQL
+Editor:
+
+```sql
+select table_schema, table_name
+from information_schema.tables
+where table_schema = 'public'
+  and table_name = 'notes';
+```
+
+The expected result is `public | notes`. An empty table is normal until the
+first user creates a note.
 
 ### 3. Configure environment variables
 
@@ -289,10 +309,24 @@ requires a new deployment.
 
 ---
 
-## 📧 Optional Background Email Reminders
+## 📧 Add Email Reminders
 
-Browser reminders require the app to remain open. To enable email reminders
-when the app is closed:
+Browser reminders require the app to remain open. Email reminders use the
+already included `send-reminders` Supabase Edge Function, so they can arrive
+even when the application is closed.
+
+### 1. Create a Resend sender
+
+1. Create an account at [Resend](https://resend.com/).
+2. Add and verify a sending domain, or use a verified Resend testing sender.
+3. Create a Resend API key and keep it private.
+
+The `REMINDER_FROM_EMAIL` address must belong to a verified Resend domain.
+
+### 2. Link and deploy the Edge Function
+
+Find the project reference in the Supabase dashboard URL or under
+**Project Settings > General**, then run:
 
 ```bash
 npx supabase login
@@ -300,29 +334,47 @@ npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase functions deploy send-reminders
 ```
 
-Configure the function secrets:
+### 3. Add the function secrets
+
+Generate a long random value for `CRON_SECRET`, then set all three secrets:
 
 ```bash
 npx supabase secrets set \
-  RESEND_API_KEY=your-resend-key \
-  REMINDER_FROM_EMAIL=reminders@your-domain.com \
-  CRON_SECRET=choose-a-secret
+  RESEND_API_KEY=re_xxxxxxxxx \
+  REMINDER_FROM_EMAIL=reminders@your-verified-domain.com \
+  CRON_SECRET=replace-with-a-long-random-secret
 ```
 
-Configure Supabase Cron, GitHub Actions, or another scheduler to send a `POST`
+These are server-side secrets. Do not add them to `.env.local`, Vercel
+environment variables, or any `VITE_*` variable.
+
+### 4. Schedule the function
+
+Use Supabase Cron, GitHub Actions, or another scheduler to send a `POST`
 request every minute to:
 
 ```text
 https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-reminders
 ```
 
-Include this header:
+The request must include the secret header:
 
 ```text
-x-cron-secret: choose-a-secret
+x-cron-secret: replace-with-a-long-random-secret
 ```
 
-The sender address must be authorized in Resend.
+For example, a scheduler using cURL can run:
+
+```bash
+curl -X POST \
+  -H "x-cron-secret: replace-with-a-long-random-secret" \
+  https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-reminders
+```
+
+The function finds due notes, sends each reminder through Resend, and sets
+`reminder_sent_at` only after the email and database update succeed. Check
+**Supabase Dashboard > Edge Functions > send-reminders > Logs** if an email
+does not arrive.
 
 ---
 
@@ -368,6 +420,10 @@ npm run build
 
 - **Authentication is disabled:** Check both `VITE_SUPABASE_URL` and
   `VITE_SUPABASE_ANON_KEY` in `.env.local`, then restart the dev server.
+- **The `notes` table is not visible:** Confirm that the SQL script was run in
+  the correct Supabase project, refresh **Table Editor**, and check that the
+  table is under the `public` schema. The project URL in `.env.local` must
+  match the Supabase project you are viewing.
 - **Notes cannot be loaded or saved:** Run the full
   [`supabase/schema.sql`](./supabase/schema.sql) script and confirm the app
   points to the same Supabase project.
