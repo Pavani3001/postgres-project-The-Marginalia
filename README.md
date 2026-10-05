@@ -6,20 +6,6 @@ The Marginalia is a personal notes application built with React, TypeScript,
 Vite, and Supabase. Users can create an account, write private notes, attach
 reminders, and manage their notes from a simple reading-room-style interface.
 
----
-
-## 🚀 Live Demo
-
-https://postgres-plum.vercel.app/
-
----
-
-## 🎥 Demo Video
-
-https://youtu.be/mZMH92CJXbs?si=pRusw6pBDA2HrudD
-
----
-
 ## 📌 Problem
 
 Small ideas, personal reflections, and important follow-ups are easy to lose
@@ -406,3 +392,21 @@ npm run build
 - **Email reminders do not arrive:** Check Edge Function logs, function
   secrets, the Resend sender domain, and the scheduler's `POST` request and
   `x-cron-secret` header.
+
+---
+
+## 🚀 Live Demo
+
+https://postgres-plum.vercel.app/
+
+---
+
+## 🎥 Demo Video
+
+https://youtu.be/mZMH92CJXbs?si=pRusw6pBDA2HrudD
+
+---
+
+## 📝 Medium Article
+
+https://medium.com/@rithikamalthumkar1/the-marginalia-building-a-smart-notes-app-with-postgresql-supabase-automated-email-reminders-815afb3d6b96?postPublishedType=initial
