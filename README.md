@@ -1,4 +1,4 @@
-# The Marginalia
+# 📝The Marginalia
 
 > A quiet, private space for capturing thoughts and remembering what matters.
 
